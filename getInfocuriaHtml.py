@@ -5,43 +5,8 @@ url = r"https://infocuria.curia.europa.eu/tabs/jurisprudence?lang=EN&typedoc=POS
 
 url = r"https://infocuriaws.curia.europa.eu/elastic-connector/search"
 
-date = "01/2026"
-# req = {
-#     "searchTerm": "C-286/24", "multiSearchTerms": [],
-#     "sortTermList": [{"sortDirection": "DESC", "sortTerm": "DOC_DATE"}],
-#     "pagination": {"pageNumber": 0, "pageSize": 400, "from": 1, "to": 400},
-#     "language": "DE", "tabName": "jurisprudence", "isAllTabsRequest": "false",
-#     "ecli": "", "publishedId": "", "usualName": "", "logicDocId": "",
-#     "filtersValue": [{"field": "docDate", "values": ["2026-01-20", "2031-01-20"],
-#                      "valuesWithFullHierarchy": ["2026-01-20", "2031-01-20"]}],
-#     "isSearchExact": "true", "searchSources": ["document", "metadata"]}
 
-
-
-# fields = {
-#     "src":["", "nometa", "nodoc"],
-#     "jurisdiction": ["C", "T", "F"],  # C: Gerichtshof, T: Gericht, F Gericht für öffentlichen dienst # can be concatenated with ampersand
-#     "date":[],
-#     "pubrecueil":["yes", "no"], # in der öffentlichen sammlung veröffentlicht
-#     "typedoc":["ARRET", # Urteil
-#                "INF", #Urteil(Information)
-#                "AVIS", #Gutachten
-#                "CONCL", # Schlussanträge
-#                "DECISION", # Entscheidung über eine Überprüfung
-#                "DELI", # Beschluss (Type 1)   !!!! might be a bugged one , only one document of this type
-#                "ORD", # Beschluss (Type 2)
-#                "REF", # Beschluss (Information)
-#                "POSITION", # Stellungsnahme
-#             ], # all options selectable in filter
-#     "matiere":[
-#         "" # very long list of options
-#     ],
-#     "date" : [{"field": "docDate", "values": ["2026-01-20", "2031-01-20"],
-#                      "valuesWithFullHierarchy": ["2001-01-20", "2031-01-20"]}]
-
-# }
-
-# contstruct the document url from the attributes
+# construct the document url from the attributes
 def constructUrl(content_item, doc_type_code, doc_base_url, logic_doc_id):
     parts = []
     parts.append(doc_base_url)
@@ -67,10 +32,6 @@ def constructUrl(content_item, doc_type_code, doc_base_url, logic_doc_id):
     parts.append("1-")
 
     # there might be pdfs and html documents assuming the ui on the website is showing everything
-    # parts.append(content_item["formats"][0].lower())
-
-    # assert(len(content_item["formats"]) == 1) # check that only a html document is available
-    # assert(content_item["formats"][0].lower()=="html", "not a html document")
 
     assert("html" in [docFormat.lower() for docFormat in content_item["formats"]]) # make sure html is available
     parts.append("html")
@@ -182,22 +143,14 @@ def dump_frame_tree(frame, indent):
 def downloadDocumentPlaywright(url):
     
     from playwright.sync_api import Page, expect, Playwright, sync_playwright, Frame
-    # import playwright
-    # import playwright.firefox
-    # create a new incognito browser context
 
     file_name = url.split("/")[-1]
     with sync_playwright() as pw:
         firefox = pw.firefox
         browser = firefox.launch()
-        # context = browser.new_context()
-        # # create a new page inside context.
-        # page = context.new_page()
         page = browser.new_page()
 
         page.goto(url)
-        # print(page.content())
-        # dump_frame_tree(page.main_frame, "")
 
         frame = page.frame("document-inner-frame")
         print(frame)
@@ -212,7 +165,6 @@ if __name__ == "__main__":
     import datetime
 
     # get month + year
-
     # save all documents into html files
 
     print(sys.argv)
@@ -225,19 +177,15 @@ if __name__ == "__main__":
     if not ( year > 1900 and year < 3000 and month > 0 and month <=12):
         print("Usage: python program --year yyyy --month mm")
     
-
-
-
-
     # exit()
     urls = getUrls(year, month)
     [print(url) for url in urls]
     # exit()
 
-    testUrl = r"https://infocuria.curia.europa.eu/tabs/document/T/2025/T-0071-25-00000000PI-01-P-01/ARRET_NP/314514-EN-1-html"
-    # downloadDocument(testUrl)
-    downloadDocumentPlaywright(testUrl)
-    exit()
+    # testUrl = r"https://infocuria.curia.europa.eu/tabs/document/T/2025/T-0071-25-00000000PI-01-P-01/ARRET_NP/314514-EN-1-html"
+    # # downloadDocument(testUrl)
+    # downloadDocumentPlaywright(testUrl)
+    # exit()
     for url in urls:
         downloadDocumentPlaywright(url)
 
