@@ -1,6 +1,6 @@
 import requests
 import json
-
+from playwright.sync_api import Page, expect, Playwright, sync_playwright, Frame
 url = r"https://infocuria.curia.europa.eu/tabs/jurisprudence?lang=EN&typedoc=POSITION"
 
 url = r"https://infocuriaws.curia.europa.eu/elastic-connector/search"
@@ -132,7 +132,7 @@ def getUrls(year, month):
         
         url = constructUrl(filteredItems[0], doc_type_code, doc_base_url, logic_doc_id)
         urls.append(url)
-    print("got {} of {} documents".format(len(urls), len(search_results)))
+    print("got {} of {} document urls".format(len(urls), len(search_results)))
     return urls
 
 def dump_frame_tree(frame, indent):
@@ -141,9 +141,6 @@ def dump_frame_tree(frame, indent):
         dump_frame_tree(child, indent + "    ")
 
 def downloadDocumentPlaywright(url):
-    
-    from playwright.sync_api import Page, expect, Playwright, sync_playwright, Frame
-
     file_name = url.split("/")[-1]
     with sync_playwright() as pw:
         firefox = pw.firefox
@@ -153,7 +150,7 @@ def downloadDocumentPlaywright(url):
         page.goto(url)
 
         frame = page.frame("document-inner-frame")
-        print(frame)
+        # print(frame)
         with open('{}.html'.format(file_name), 'w+', encoding="utf-8") as f:
             f.write(frame.content())
         # dispose context once it is no longer needed.
@@ -167,10 +164,11 @@ if __name__ == "__main__":
     # get month + year
     # save all documents into html files
 
-    print(sys.argv)
+    # print(sys.argv)
 
     if not len(sys.argv) == 5:
         print("Usage: python getInfocuriaHtml.py --year yyyy --month mm")
+        exit()
     
     year = int(sys.argv[2])
     month = int(sys.argv[4])
@@ -179,7 +177,7 @@ if __name__ == "__main__":
     
     # exit()
     urls = getUrls(year, month)
-    [print(url) for url in urls]
+    # [print(url) for url in urls]
     # exit()
 
     # testUrl = r"https://infocuria.curia.europa.eu/tabs/document/T/2025/T-0071-25-00000000PI-01-P-01/ARRET_NP/314514-EN-1-html"
