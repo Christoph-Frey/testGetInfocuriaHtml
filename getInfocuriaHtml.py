@@ -234,9 +234,10 @@ if __name__ == "__main__":
     [print(url) for url in urls]
     # exit()
 
-    # testUrl = r"https://infocuria.curia.europa.eu/tabs/document/T/2025/T-0071-25-00000000PI-01-P-01/ARRET_NP/314514-EN-1-html"
-    # # downloadDocument(testUrl)
-    # downloadDocumentPlaywright(testUrl)
+    testUrl = r"https://infocuria.curia.europa.eu/tabs/document/T/2025/T-0071-25-00000000PI-01-P-01/ARRET_NP/314514-EN-1-html"
+    # downloadDocument(testUrl)
+    downloadDocumentPlaywright(testUrl)
+    exit()
     for url in urls:
         downloadDocumentPlaywright(url)
 
