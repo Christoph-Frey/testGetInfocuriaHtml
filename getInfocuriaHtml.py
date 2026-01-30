@@ -140,20 +140,21 @@ def dump_frame_tree(frame, indent):
     for child in frame.child_frames:
         dump_frame_tree(child, indent + "    ")
 
-def downloadDocumentPlaywright(url):
-    file_name = url.split("/")[-1]
+def downloadDocumentPlaywright(urls):
+    import time
     with sync_playwright() as pw:
         firefox = pw.firefox
         browser = firefox.launch()
         page = browser.new_page()
-
-        page.goto(url)
-
-        frame = page.frame("document-inner-frame")
-        # print(frame)
-        with open('{}.html'.format(file_name), 'w+', encoding="utf-8") as f:
-            f.write(frame.content())
-        # dispose context once it is no longer needed.
+        for url in urls:
+            file_name = url.split("/")[-1]
+            page.goto(url)
+            time.sleep(1)
+            frame = page.frame("document-inner-frame")
+            # print(frame)
+            with open('{}.html'.format(file_name), 'w+', encoding="utf-8") as f:
+                f.write(frame.content())
+            # dispose context once it is no longer needed.
         browser.close()
 
 if __name__ == "__main__":
@@ -184,6 +185,6 @@ if __name__ == "__main__":
     # # downloadDocument(testUrl)
     # downloadDocumentPlaywright(testUrl)
     # exit()
-    for url in urls:
-        downloadDocumentPlaywright(url)
+
+    downloadDocumentPlaywright(urls)
 
