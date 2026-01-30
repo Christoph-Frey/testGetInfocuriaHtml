@@ -145,16 +145,30 @@ def downloadDocumentPlaywright(urls):
     with sync_playwright() as pw:
         firefox = pw.firefox
         browser = firefox.launch()
-        page = browser.new_page()
+        tries = 10
+        # timeoutOption = {"timeout": 10000}
         for url in urls:
-            file_name = url.split("/")[-1]
-            page.goto(url)
-            time.sleep(1)
-            frame = page.frame("document-inner-frame")
-            # print(frame)
-            with open('{}.html'.format(file_name), 'w+', encoding="utf-8") as f:
-                f.write(frame.content())
-            # dispose context once it is no longer needed.
+            for i in range(tries):
+                try:
+                    page = browser.new_page()
+                    file_name = url.split("/")[-1]
+                    page.goto(url)
+                    frame = page.frame("document-inner-frame")
+                    if len(frame.content()) < 1000:
+                        print("content less than 1000 character, potential failure to load")
+                        raise ConnectionError
+                    with open('{}.html'.format(file_name), 'w+', encoding="utf-8") as f:
+                        f.write(frame.content())
+                    page.close()
+                    break
+                except KeyboardInterrupt:
+                    browser.close()
+                    exit()
+                except:
+                    print("retrying {}".format(url))
+                    if i== tries-1:
+                        print("FAILED TO GET {}".format(url))
+                    continue
         browser.close()
 
 if __name__ == "__main__":
