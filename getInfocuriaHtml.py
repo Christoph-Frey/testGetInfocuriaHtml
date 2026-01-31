@@ -6,8 +6,8 @@ url = r"https://infocuria.curia.europa.eu/tabs/jurisprudence?lang=EN&typedoc=POS
 url = r"https://infocuriaws.curia.europa.eu/elastic-connector/search"
 
 
-# construct the document url from the attributes
-def constructUrl(content_item, doc_type_code, doc_base_url, logic_doc_id):
+# construct the site url from the attributes
+def constructUrlSite(content_item, doc_type_code, doc_base_url, logic_doc_id):
     parts = []
     parts.append(doc_base_url)
     parts.append(content_item["id"].split("/")[0])
@@ -37,8 +37,57 @@ def constructUrl(content_item, doc_type_code, doc_base_url, logic_doc_id):
     parts.append("html")
     return "".join(parts)
 
+# construct the document url from the attributes
+def constructUrlDocument(content_item, doc_type_code, doc_base_url, logic_doc_id):
+    doc_base_url = r"https://infocuria.curia.europa.eu/document/"
+    # example : "https://infocuria.curia.europa.eu/document/C-0721-2024-24-00000000RP-01-P-01-314907-1-EN.html"
+    parts = []
 
-def downloadDocument(url):
+    url_parts = content_item["idProcedure"].replace("/", "-").split("-")
+    doc_id = "-".join(url_parts[:2]+ ["20"+url_parts[2]] + url_parts[2:])
+    print(doc_id)
+    parts.append(doc_id)
+    
+    parts.append(logic_doc_id.split("_")[1])
+    parts.append("1")
+    parts.append(content_item["docLang"]+".html")
+
+    document_url = "-".join(parts)
+    print(doc_base_url+document_url)
+    return doc_base_url+document_url
+    # exit()
+    {
+    # parts.append(doc_base_url)
+    # parts.append(content_item["id"].split("/")[0])
+
+    # parts.append("/")
+
+    # # This assumes the date is after 2000, !!!! (Can it be earlier? how is it detected?)
+    # parts.append("20"+content_item["id"].split("/")[2])
+    # parts.append("/")
+    # parts.append(content_item["idProcedure"].replace("/", "-"))
+
+    # parts.append("/")
+    # parts.append(doc_type_code)
+
+    # parts.append("/")
+    # parts.append(logic_doc_id.split("_")[1])
+    # parts.append("-")
+    # parts.append(content_item["docLang"])
+    # parts.append("-")
+
+    # # What is this number ??????????
+    # parts.append("1-")
+
+    # # there might be pdfs and html documents assuming the ui on the website is showing everything
+
+    # assert("html" in [docFormat.lower() for docFormat in content_item["formats"]]) # make sure html is available
+    # parts.append("html")
+    }
+    return "".join(parts)
+
+
+def downloadDocumentSelenium(url):
     from selenium import webdriver
     from selenium.webdriver.common.by import By
     from selenium.webdriver.chrome.options import Options
@@ -62,7 +111,7 @@ def downloadDocument(url):
     driver.quit()
 
 
-def getUrls(year, month):
+def getUrlToPage(year, month):
 
     last_day = str(datetime.date(year, month, calendar.monthrange(year, month)[1]))
     first_day = str(datetime.date(year, month, 1))
@@ -130,10 +179,12 @@ def getUrls(year, month):
 
         assert(len(filteredItems) == 1)
         
-        url = constructUrl(filteredItems[0], doc_type_code, doc_base_url, logic_doc_id)
+        url = constructUrlDocument(filteredItems[0], doc_type_code, doc_base_url, logic_doc_id)
         urls.append(url)
+        
     print("got {} of {} document urls".format(len(urls), len(search_results)))
     return urls
+
 
 def dump_frame_tree(frame, indent):
     print(indent + frame.name + '@' + frame.url)
@@ -157,7 +208,7 @@ def downloadDocumentPlaywright(urls):
                     if len(frame.content()) < 1000:
                         print("content less than 1000 character, potential failure to load")
                         raise ConnectionError
-                    with open('{}.html'.format(file_name), 'w+', encoding="utf-8") as f:
+                    with open('./tempSites/{}.html'.format(file_name), 'w+', encoding="utf-8") as f:
                         f.write(frame.content())
                     page.close()
                     break
@@ -191,7 +242,20 @@ if __name__ == "__main__":
         print("Usage: python program --year yyyy --month mm")
     
     # exit()
-    urls = getUrls(year, month)
+    urls = getUrlToPage(year, month)
+
+    print(urls)
+
+    for url in urls:
+        response = requests.get(url)
+        file_name = url.split("/")[-1]
+        print(file_name)
+        with open("./"+file_name, "wb") as f:
+            f.write(response.content)
+
+    exit()
+    #https://infocuria.curia.europa.eu/document/C-0721-2024-24-00000000RP-01-P-01-314907-1-EN.html
+    #urls = getUrlToDocument(year, month)
     # [print(url) for url in urls]
     # exit()
 
@@ -200,5 +264,5 @@ if __name__ == "__main__":
     # downloadDocumentPlaywright(testUrl)
     # exit()
 
-    downloadDocumentPlaywright(urls)
+    # downloadDocumentPlaywright(urls)
 
